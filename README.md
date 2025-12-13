@@ -119,4 +119,3 @@ All outputs are:
 This project demonstrates a **clean, minimal, agentic architecture** built using LangChain and LangGraph.
 
 It satisfies all core requirements for real-world agent-based automation systems, including clear agent boundaries, framework-based orchestration, and structured outputs.
-
