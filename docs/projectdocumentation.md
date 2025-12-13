@@ -1,6 +1,3 @@
----
-
-```md
 # Multi-Agent Content Generation System  
 ## Project Documentation
 
