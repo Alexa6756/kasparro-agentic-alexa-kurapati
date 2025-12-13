@@ -63,7 +63,7 @@ This design avoids scripted pipelines and instead demonstrates real agent bounda
 
 ---
 
-## 4. System Design (Mandatory)
+## 4. System Design 
 
 ### 4.1 Architectural Principles
 
@@ -183,7 +183,7 @@ Structured JSON Outputs
 
 ```
 
-### State-Driven Orchestration (Conceptual)
+### State-Driven Orchestration 
 
 ```
 
@@ -214,4 +214,4 @@ It satisfies all required evaluation criteria:
 The result is a robust foundation for real-world AI content automation systems.
 ```
 
----
+
