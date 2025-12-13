@@ -1,121 +1,93 @@
-# Project Documentation  
-Multi-Agent Content Generation System
+# Multi-Agent Content Generation System
+
+This project implements a **lightweight, agentic content generation pipeline** that converts structured product data into multiple machine-readable content pages.
+
+The system is designed using **LangChain agents**, **LangGraph-based orchestration**, reusable logic blocks, and deterministic JSON outputs.
 
 ---
 
-## 1. Problem Statement
+## Overview
 
-The objective of this project is to design and implement a **true agentic system** that transforms a single product dataset into multiple structured, machine-readable content pages.
+Given a single product dataset, the system generates **exactly three structured content pages**:
 
-The system must:
-- Use multiple agents with clear responsibilities
-- Avoid monolithic or scripted pipelines
-- Be orchestrated using a framework-based workflow
-- Rely on model + tool interactions
-- Produce deterministic JSON outputs
-- Use only the provided input data
+- FAQ Page
+- Product Description Page
+- Product Comparison Page (against a fictional competitor)
+
+The pipeline is built using **specialized agents**, each responsible for a single task, coordinated through a shared state and an explicit workflow graph.
 
 ---
 
-## 2. Solution Overview
+## Input & Output
 
-The solution is implemented as a **LangChain + LangGraph multi-agent system**.
-
-Each agent performs one well-defined task and communicates through a shared state object.  
-Execution order is controlled by an explicit workflow graph rather than hard-coded sequencing.
-
----
-
-## 3. Scope & Assumptions
-
-### Input Scope
+### Input
 - A structured product object provided at runtime
-- No external data sources are used
 
-### Output Scope
-- Exactly three JSON files:
-  - `faq.json`
-  - `product_page.json`
-  - `comparison_page.json`
+### Output
+The system always generates the following JSON files:
 
-### Constraints
-- Outputs are deterministic
-- Architecture correctness is independent of API availability
+- `faq.json`
+- `product_page.json`
+- `comparison_page.json`
+
+All outputs are fully structured, deterministic, and derived strictly from the input data.
 
 ---
 
-## 4. System Design (Mandatory)
+## System Design (High Level)
 
-### 4.1 Architectural Principles
+The system is composed of three core agents:
 
-- Single responsibility per agent
-- Explicit orchestration via workflow graph
-- Tool-driven reasoning
-- Reusable templates and logic blocks
-- No hidden control flow
+- **Parser Agent** – structures and validates raw product data
+- **Question Agent** – generates categorized user questions
+- **Writer Agent** – assembles final pages using templates
 
----
-
-### 4.2 Agent Responsibilities
-
-**Parser Agent**
-- Validates and structures raw product input
-- Produces a normalized product representation
-
-**Question Agent**
-- Generates categorized user questions
-- Uses model-driven logic rather than static lists
-
-**Writer Agent**
-- Uses reusable templates
-- Assembles final JSON outputs deterministically
-- Does not perform autonomous reasoning
+Agents communicate via shared state and are executed conditionally using a graph-based workflow.
 
 ---
 
-### 4.3 Orchestration
-
-The system uses a **graph-based workflow** to control execution:
-
-- If product data is missing → Parser Agent
-- If questions are missing → Question Agent
-- Otherwise → Writer Agent → END
-
-This ensures correct sequencing without custom orchestration logic.
-
----
-
-### 4.4 Tool & Template Usage
-
-- Business logic is encapsulated in tools and logic blocks
-- Output structure is defined using reusable templates
-- No predefined output strings are embedded in prompts
-
----
-
-## 5. Output Guarantees
-
-The system always produces:
-
-````
-
-outputs/
-├── faq.json
-├── product_page.json
-└── comparison_page.json
+## Execution Flow (Conceptual)
 
 ```
 
-All outputs are:
-- Fully JSON-structured
-- Machine-readable
-- Deterministic
-- Derived strictly from input data
+Raw Product Input
+│
+▼
+Parser Agent
+│
+▼
+Question Agent
+│
+▼
+Writer Agent
+│
+▼
+Structured JSON Outputs
+
+````
 
 ---
 
-## 6. Conclusion
+## Key Characteristics
 
-This project demonstrates a **clean, minimal, agentic architecture** built using LangChain and LangGraph.
+- Clear agent responsibilities
+- Explicit orchestration (no scripted flow)
+- Tool-driven reasoning
+- Reusable templates and logic blocks
+- Fully JSON-structured output
+- Clean, minimal architecture
 
-It satisfies all core requirements for real-world agent-based automation systems, including clear agent boundaries, framework-based orchestration, and structured outputs.
+---
+
+## Running the Project
+
+```bash
+pip install -r requirements.txt
+python main.py
+````
+
+---
+
+## Conclusion
+
+This project demonstrates a **real agentic pipeline** using LangChain and LangGraph, with a focus on modularity, determinism, and clean system design suitable for production-style AI automation workflows.
