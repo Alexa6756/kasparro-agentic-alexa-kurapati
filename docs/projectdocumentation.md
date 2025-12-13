@@ -1,201 +1,139 @@
 ---
 
-# Multi-Agent Content Generation System — Project Documentation
+```md
+# Multi-Agent Content Generation System  
+## Project Documentation
+
+---
 
 ## 1. Problem Statement
 
-The objective of this project is to design and implement a **modular, agentic automation system** that converts a small product dataset into multiple structured, machine-readable content pages.
+The goal of this project is to design and implement a true agentic automation system that transforms a single product dataset into multiple structured, machine-readable content artifacts.
 
-The system must demonstrate:
+The system must:
 
-- True multi-agent design with clear responsibilities
-- LangChain-based agents (not a monolithic script)
-- Explicit orchestration using an automation graph
-- Tool-driven reasoning instead of static string outputs
-- Reusable logic blocks and templates
-- Fully structured JSON output
-- No external data usage beyond the provided product input
+- Follow a multi-agent architecture with clear separation of responsibilities  
+- Use LangChain-based agents, not a monolithic script  
+- Be orchestrated explicitly using a graph-based automation framework  
+- Rely on tool-driven reasoning, not hard-coded outputs  
+- Produce deterministic, fully structured JSON outputs  
+- Operate strictly on the provided product input without external data  
 
-The input is a single product dataset.  
-The output is **exactly three JSON files**:
+### Input
+- A single product dataset provided at runtime  
 
-1. FAQ Page  
-2. Product Description Page  
-3. Comparison Page (vs a fictional competitor)
+### Output (exactly three files)
+- `faq.json`  
+- `product_page.json`  
+- `comparison_page.json`  
 
 ---
 
 ## 2. Solution Overview
 
-This solution implements a **LangChain + LangGraph based multi-agent system** where each agent is responsible for a single, well-defined task.
+The solution is implemented as a LangChain + LangGraph multi-agent system in which each agent performs one clearly defined task.
 
-The system consists of three core reasoning agents orchestrated via a **LangGraph StateGraph**:
+The system uses a shared state object and a graph-based execution model to ensure that agents are executed only when their required inputs are available.
 
-1. **Parser Agent** — understands and structures raw product data
-2. **Question Generation Agent** — produces categorized user questions
-3. **Writer Agent** — assembles final pages using reusable templates
+High-level responsibilities are divided as follows:
 
-Agents communicate via a shared state object and are executed conditionally until all required outputs are produced.
+- Parsing & normalization of product data  
+- Autonomous generation of user-facing questions  
+- Deterministic assembly of final structured content  
+
+This design avoids scripted pipelines and instead demonstrates real agent boundaries, reasoning, and orchestration.
 
 ---
 
 ## 3. Scope & Assumptions
 
 ### Input Scope
-- Product data is provided as a JSON-like object at runtime.
-- No external APIs or knowledge sources are queried.
+- Product data is provided as a structured JSON-like object.  
+- All required information is contained within this input.  
 
 ### Output Scope
-- Exactly three files are generated:
-  - `faq.json`
-  - `product_page.json`
-  - `comparison_page.json`
+- Exactly three JSON files are generated.  
+- Output schemas are fixed and machine-readable.  
 
 ### Data Usage Rules
-- Only the provided product fields are used.
-- The comparison product is fictional and deterministically generated.
-- No domain expertise or enrichment is introduced.
+- No external APIs, databases, or knowledge sources are used.  
+- The comparison product is fictional and deterministically derived.  
+- No enrichment or inferred domain knowledge is introduced.  
 
 ### System Constraints
-- Architecture correctness must be independent of API quota availability.
-- Outputs must remain deterministic given the same input.
+- Architectural correctness must not depend on API availability.  
+- Given the same input, the system produces the same output.  
 
 ---
 
-## 4. System Architecture
+## 4. System Design (Mandatory)
 
-### High-Level Flow
+### 4.1 Architectural Principles
 
-```
+The system is designed around the following principles:
 
-Raw Product Data
-│
-▼
-┌────────────────────┐
-│  Parser Agent      │
-│ (LLM + Tool)       │
-└────────────────────┘
-│
-▼
-┌────────────────────┐
-│ Question Agent     │
-│ (LLM + Tool)       │
-└────────────────────┘
-│
-▼
-┌────────────────────┐
-│ Writer Agent       │
-│ (Templates Only)   │
-└────────────────────┘
-│
-▼
-Structured JSON Outputs
+- Single responsibility per agent  
+- Explicit orchestration via a state graph  
+- Tool-mediated reasoning  
+- Deterministic final outputs  
+- No hidden control flow  
 
-```
+Each agent operates independently and communicates only through shared state, ensuring loose coupling and clear execution boundaries.
 
 ---
 
-## 5. Agent Design
+### 4.2 Agent Roles & Responsibilities
 
-### 5.1 Parser Agent
+#### 1. Parser Agent
+- Converts raw product input into a clean, structured internal representation  
+- Uses tools for validation and normalization  
+- Produces a structured product object stored in shared state  
 
-**Responsibility**
-- Convert raw product input into a clean internal product model
+#### 2. Question Generation Agent
+- Autonomously generates a minimum set of categorized user questions  
+- Uses tools to ensure coverage across usage, safety, benefits, purchase, and comparison  
+- Stores generated questions in shared state  
 
-**Characteristics**
-- Implemented using LangChain ReAct agent
-- Uses a parsing tool to structure data
-- No hard-coded transformations outside tools
-- Outputs fully structured JSON
-
-**Output**
-- `parsed_product` (stored in shared state)
-
----
-
-### 5.2 Question Generation Agent
-
-**Responsibility**
-- Generate at least 15 categorized user questions
-
-**Characteristics**
-- LangChain ReAct agent
-- Tool-based question generation
-- Categories include usage, safety, benefits, purchase, and comparison
-- No static or predefined questions
-
-**Output**
-- `questions[]` (stored in shared state)
+#### 3. Writer Agent
+- Performs deterministic transformation using reusable templates  
+- Assembles final content pages  
+- Writes structured JSON outputs to disk  
+- Does not perform LLM reasoning  
 
 ---
 
-### 5.3 Writer Agent
+### 4.3 Orchestration with LangGraph
 
-**Responsibility**
-- Assemble final content pages using templates and logic blocks
+The system uses LangGraph’s StateGraph to control execution.
 
-**Characteristics**
-- No LLM reasoning
-- Pure deterministic transformation
-- Uses reusable templates
-- Writes final JSON files to disk
+#### Routing Logic
+- If structured product data is missing → run Parser Agent  
+- If user questions are missing → run Question Generation Agent  
+- Otherwise → run Writer Agent and terminate  
 
-**Outputs**
-- `faq.json`
-- `product_page.json`
-- `comparison_page.json`
+This ensures:
 
----
+- Correct execution order  
+- No unnecessary agent invocations  
+- Clear, inspectable control flow  
 
-## 6. Orchestration with LangGraph
-
-The system uses **LangGraph’s StateGraph** to control execution.
-
-### Why LangGraph
-- Explicit automation flow
-- Conditional routing
-- Clear agent boundaries
-- No custom orchestration logic
-
-### Routing Logic
-- If `parsed_product` is missing → Parser Agent
-- If `questions` are missing → Question Agent
-- Otherwise → Writer Agent → END
-
-This ensures correct sequencing while keeping agents independent.
+No custom orchestration logic or manual sequencing is used.
 
 ---
 
-## 7. Tool & Model Usage
+### 4.4 Tool-Driven Reasoning
 
-- All reasoning agents use **LLM + tool calls**
-- No predefined output strings
-- Tools encapsulate business logic
-- Models decide *when* and *how* to invoke tools
+All reasoning agents operate using LLM + tool calls:
 
-This ensures genuine agentic behavior rather than scripted execution.
+- Business logic is encapsulated inside tools  
+- The model decides when and how to invoke tools  
+- No predefined output strings or scripted decisions exist  
 
----
-
-## 8. Reusable Logic Blocks & Templates
-
-Reusable templates define output structure:
-
-- FAQ Template
-- Product Page Template
-- Comparison Page Template
-
-Reusable logic blocks include:
-- Benefit formatting
-- Usage extraction
-- Price normalization
-- Fictional competitor generation
-
-This design avoids prompt duplication and ensures consistency.
+This ensures genuine agentic behavior rather than prompt-driven execution.
 
 ---
 
-## 9. Output Guarantees
+### 4.5 Output Guarantees
 
 The system always produces:
 
@@ -209,51 +147,74 @@ outputs/
 ```
 
 All outputs are:
-- Fully JSON-structured
-- Machine-readable
-- Deterministic
-- Derived strictly from input data
+
+- Fully structured JSON  
+- Deterministic  
+- Derived strictly from the input product data  
+- Suitable for downstream automation or ingestion  
 
 ---
 
-## 10. Error Handling
+## 5. Optional Diagrams
 
-- Early validation of structured outputs
-- Safe JSON parsing
-- Graceful failure on non-critical issues
-- Clear logging at each agent boundary
+### High-Level Execution Flow
 
-API quota errors do not affect architectural correctness.
+```
 
----
+Raw Product Input
+│
+▼
+┌────────────────────┐
+│  Parser Agent      │
+│  (LLM + Tools)     │
+└────────────────────┘
+│
+▼
+┌────────────────────┐
+│ Question Agent     │
+│  (LLM + Tools)     │
+└────────────────────┘
+│
+▼
+┌────────────────────┐
+│ Writer Agent       │
+│ (Deterministic)    │
+└────────────────────┘
+│
+▼
+Structured JSON Outputs
 
-## 11. Extensibility
+```
 
-The architecture supports:
-- Adding new agents
-- Adding new templates
-- Supporting batch inputs
-- Additional content types (SEO, ads, summaries)
-- Alternative output formats
+### State-Driven Orchestration (Conceptual)
 
-All without changing orchestration logic.
+```
 
----
+[Start]
+│
+├─ parsed_product missing → Parser Agent
+│
+├─ questions missing → Question Agent
+│
+└─ all data present → Writer Agent → END
 
-## 12. Conclusion
-
-This project demonstrates a **production-style agentic content pipeline** built with LangChain and LangGraph.
-
-It satisfies all evaluation requirements:
-- Real agents with clear responsibilities
-- LangChain-based orchestration
-- Tool-driven reasoning
-- Reusable templates and logic blocks
-- Fully structured JSON outputs
-- Clean, minimal system design
-
-The system is modular, extensible, deterministic, and aligned with real-world AI automation workflows.
 ```
 
 ---
 
+## 6. Conclusion
+
+This project demonstrates a clean, production-style agentic system built using LangChain and LangGraph.
+
+It satisfies all required evaluation criteria:
+
+- True multi-agent design  
+- Framework-based orchestration  
+- Tool-driven reasoning  
+- Deterministic structured outputs  
+- Minimal, extensible architecture  
+
+The result is a robust foundation for real-world AI content automation systems.
+```
+
+---
